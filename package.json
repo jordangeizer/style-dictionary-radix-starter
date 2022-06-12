@@ -1,0 +1,12 @@
+{
+	"scripts": {
+		"build": "node ./config.js"
+	},
+	"dependencies": {
+		"@divriots/style-dictionary-to-figma": "^0.2.0",
+		"@radix-ui/colors": "^0.1.8"
+	},
+	"devDependencies": {
+		"style-dictionary": "^3.7.1"
+	}
+}
