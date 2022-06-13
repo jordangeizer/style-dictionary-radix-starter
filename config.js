@@ -1,60 +1,26 @@
 const StyleDictionaryPackage = require("style-dictionary");
+const { formatForFigma } = require("./scripts/figmaTokens");
+const { formatForES6 } = require("./scripts/es6WithReferences");
 
-const set = (obj, path, val) => {
-	const keys = path.split(".");
-	const lastKey = keys.pop();
-	const lastObj = keys.reduce((obj, key) => (obj[key] = obj[key] || {}), obj);
-	lastObj[lastKey] = val;
-};
-
-// HAVE THE STYLE DICTIONARY CONFIG DYNAMICALLY GENERATED
+// Add and remove themes here
+const themes = ["light", "dark"];
 
 function getStyleDictionaryConfig(theme) {
 	return {
+		// Add and remove token files to be included here
 		source: [`tokens/color/${theme}/*.json`, "tokens/color/mapping/*.json"],
 		format: {
 			FigmaTokenReferences: ({ dictionary }) => {
-				let obj = {};
-				dictionary.allTokens.map((token) => {
-					let value = token.value;
-					if (dictionary.usesReference(token.original.value)) {
-						const refs = dictionary.getReferences(token.original.value);
-						refs.forEach((ref) => {
-							value = value.replace(ref.value, function () {
-								return `${token.original.value}`;
-							});
-						});
-					}
-					newToken = {
-						value: value,
-						type: token.type,
-					};
-					let path = token.path.join(".");
-					set(obj, path, newToken);
-				});
-				return JSON.stringify(obj, null, 2);
+				return JSON.stringify(formatForFigma(dictionary), null, 2);
+			},
+			es6WithReferences: function ({ dictionary }) {
+				return formatForES6(dictionary);
 			},
 			allTokensRaw: function ({ dictionary }) {
 				return JSON.stringify(dictionary.allTokens, null, 2);
 			},
 			tokensRaw: function ({ dictionary }) {
 				return JSON.stringify(dictionary.tokens, null, 2);
-			},
-			es6WithReferences: function ({ dictionary }) {
-				return dictionary.allTokens
-					.map((token) => {
-						let value = JSON.stringify(token.value);
-						if (dictionary.usesReference(token.original.value)) {
-							const refs = dictionary.getReferences(token.original.value);
-							refs.forEach((ref) => {
-								value = value.replace(ref.value, function () {
-									return `${ref.name}`;
-								});
-							});
-						}
-						return `export const ${token.name} = ${value};`;
-					})
-					.join(`\n`);
 			},
 		},
 		platforms: {
@@ -67,7 +33,7 @@ function getStyleDictionaryConfig(theme) {
 						format: "css/variables",
 						options: {
 							outputReferences: true,
-							selector: theme == "dark" ? "[dark-mode]:root" : ":root",
+							selector: theme == "dark" ? ".dark-mode:root" : ":root",
 						},
 					},
 				],
@@ -87,10 +53,10 @@ function getStyleDictionaryConfig(theme) {
 			},
 			json: {
 				transformGroup: "js",
-				buildPath: `build/json/`,
+				buildPath: `build/js/`,
 				files: [
 					{
-						destination: `${theme}.json`,
+						destination: `${theme}.js`,
 						format: "es6WithReferences",
 					},
 				],
@@ -121,9 +87,9 @@ function getStyleDictionaryConfig(theme) {
 
 console.log("Build started...");
 
-// PROCESS THE DESIGN TOKENS FOR THE DIFFERENT THEMES
+// Process design tokens for different themes
 
-["light", "dark"].map(function (theme) {
+themes.map(function (theme) {
 	console.log("\n==============================================");
 	console.log(`\nProcessing: [${theme}]`);
 
