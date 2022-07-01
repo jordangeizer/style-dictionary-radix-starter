@@ -1,6 +1,7 @@
 const StyleDictionaryPackage = require("style-dictionary");
 const { formatForFigma } = require("./scripts/figmaTokens");
-const { formatForES6 } = require("./scripts/es6WithReferences");
+const { formatJSONWithReferences } = require("./scripts/jsonWithReferences");
+const { formatJSON } = require("./scripts/json");
 
 // Add and remove themes here
 const themes = ["light", "dark"];
@@ -8,13 +9,16 @@ const themes = ["light", "dark"];
 function getStyleDictionaryConfig(theme) {
 	return {
 		// Add and remove token files to be included here
-		source: [`tokens/color/${theme}/*.json`, "tokens/color/mapping/*.json"],
+		source: [`src/color/${theme}/*.json`, "src/color/mapping/*.json"],
 		format: {
 			FigmaTokenReferences: ({ dictionary }) => {
 				return JSON.stringify(formatForFigma(dictionary), null, 2);
 			},
-			es6WithReferences: function ({ dictionary }) {
-				return formatForES6(dictionary);
+			DesignSystemJSONWithReferences: function ({ dictionary }) {
+				return JSON.stringify(formatJSONWithReferences(dictionary), null, 2);
+			},
+			DesignSystemJSON: function ({ dictionary }) {
+				return JSON.stringify(formatJSON(dictionary), null, 2);
 			},
 			allTokensRaw: function ({ dictionary }) {
 				return JSON.stringify(dictionary.allTokens, null, 2);
@@ -26,7 +30,7 @@ function getStyleDictionaryConfig(theme) {
 		platforms: {
 			web: {
 				transformGroup: "web",
-				buildPath: `build/css/`,
+				buildPath: `dist/css/`,
 				files: [
 					{
 						destination: `${theme}.css`,
@@ -40,7 +44,7 @@ function getStyleDictionaryConfig(theme) {
 			},
 			figma: {
 				transformGroup: "js",
-				buildPath: "build/figma/",
+				buildPath: "dist/figma/",
 				files: [
 					{
 						destination: `${theme}.json`,
@@ -53,17 +57,27 @@ function getStyleDictionaryConfig(theme) {
 			},
 			json: {
 				transformGroup: "js",
-				buildPath: `build/js/`,
+				buildPath: `dist/json/`,
 				files: [
 					{
-						destination: `${theme}.js`,
-						format: "es6WithReferences",
+						destination: `${theme}.json`,
+						format: "DesignSystemJSON",
+					},
+				],
+			},
+			jsonWithReferences: {
+				transformGroup: "js",
+				buildPath: `dist/jsonWithReferences/`,
+				files: [
+					{
+						destination: `${theme}.json`,
+						format: "DesignSystemJSONWithReferences",
 					},
 				],
 			},
 			allTokensRaw: {
 				transformGroup: "js",
-				buildPath: `build/sd/allTokensRaw/`,
+				buildPath: `dist/styleDictionary/allTokensRaw/`,
 				files: [
 					{
 						destination: `${theme}.json`,
@@ -73,7 +87,7 @@ function getStyleDictionaryConfig(theme) {
 			},
 			tokensRaw: {
 				transformGroup: "js",
-				buildPath: `build/sd/tokensRaw/`,
+				buildPath: `dist/styleDictionary/tokensRaw/`,
 				files: [
 					{
 						destination: `${theme}.json`,
